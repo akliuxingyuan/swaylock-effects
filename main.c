@@ -19,6 +19,7 @@
 #include "background-image.h"
 #include "cairo.h"
 #include "comm.h"
+#include "command.h"
 #include "log.h"
 #include "loop.h"
 #include "password-buffer.h"
@@ -982,6 +983,8 @@ static int parse_options(int argc, char **argv, struct swaylock_state *state,
 		LO_GRACE,
 		LO_GRACE_NO_MOUSE,
 		LO_GRACE_NO_TOUCH,
+		LO_PRE_LOCKING,
+		LO_POST_UNLOCKING
 	};
 
 	static struct option long_options[] = {
@@ -1062,6 +1065,8 @@ static int parse_options(int argc, char **argv, struct swaylock_state *state,
 		{"grace", required_argument, NULL, LO_GRACE},
 		{"grace-no-mouse", no_argument, NULL, LO_GRACE_NO_MOUSE},
 		{"grace-no-touch", no_argument, NULL, LO_GRACE_NO_TOUCH},
+		{"pre-locking", required_argument, NULL, LO_PRE_LOCKING},
+		{"post-unlocking", required_argument, NULL, LO_POST_UNLOCKING},
 		{0, 0, 0, 0}
 	};
 
@@ -1183,6 +1188,10 @@ static int parse_options(int argc, char **argv, struct swaylock_state *state,
 			"Use the inside color for the line between the inside and ring.\n"
 		"  -r, --line-uses-ring             "
 			"Use the ring color for the line between the inside and ring.\n"
+		"  --pre-locking <script path>      "
+			"Sets the pre locking script.\n"
+		"  --post-unlocking <script path>   "
+			"Sets the post unlocking script.\n"
 		"  --ring-color <color>             "
 			"Sets the color of the ring of the indicator.\n"
 		"  --ring-clear-color <color>       "
@@ -1656,6 +1665,18 @@ static int parse_options(int argc, char **argv, struct swaylock_state *state,
 				state->args.password_grace_no_touch = true;
 			}
 			break;
+		case LO_PRE_LOCKING:
+			if (state) {
+				free(state->args.pre_locking);
+				state->args.pre_locking = strdup(optarg);
+			}
+			break;
+		case LO_POST_UNLOCKING:
+			if (state) {
+				free(state->args.post_unlocking);
+				state->args.post_unlocking = strdup(optarg);
+			}
+			break;
 		default:
 			fprintf(stderr, "%s", usage);
 			return 1;
@@ -1852,6 +1873,9 @@ int main(int argc, char **argv) {
 		.text_caps_lock = strdup("Caps Lock"),
 		.text_verifying = strdup("Verifying"),
 		.text_wrong = strdup("Wrong"),
+
+		.pre_locking = strdup("$HOME/.config/swaylock/pre_locking.sh"),
+		.post_unlocking = strdup("$HOME/.config/swaylock/post_unlocking.sh")
 	};
 	wl_list_init(&state.images);
 	set_default_colors(&state.args.colors);
@@ -1989,6 +2013,9 @@ int main(int argc, char **argv) {
 		}
 		return 1;
 	}
+
+	/* run pre locking script */
+	exec_cmd(state.args.pre_locking);
 
 	wl_list_for_each(surface, &state.surfaces, link) {
 		create_surface(surface);

@@ -120,6 +120,7 @@ sources = [
 	'unicode.c',
 	'effects.c',
 	'fade.c',
+	'command.c'
 ]
 
 if libpam.found()

@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <xkbcommon/xkbcommon.h>
 #include "comm.h"
+#include "command.h"
 #include "log.h"
 #include "loop.h"
 #include "seat.h"
@@ -89,6 +90,9 @@ static void submit_password(struct swaylock_state *state) {
 		state->auth_state = AUTH_STATE_INVALID;
 		schedule_indicator_clear(state);
 	}
+
+	/* run post unlocking script */
+	exec_cmd(state->args.post_unlocking);
 
 	damage_state(state);
 }

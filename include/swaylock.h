@@ -86,6 +86,9 @@ struct swaylock_args {
 	char *text_caps_lock;
 	char *text_verifying;
 	char *text_wrong;
+
+	char *pre_locking;
+	char *post_unlocking;
 };
 
 struct swaylock_password {

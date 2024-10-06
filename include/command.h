@@ -1,0 +1,1 @@
+void exec_cmd(const char *cmd);
